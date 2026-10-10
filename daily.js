@@ -34,9 +34,9 @@ const DAILY = { STREAK: 7, MONTH: 20, YEAR: 200 }; // change these numbers to tu
   }
 
   async function aiText(system, user, temp) {
-    // Daily question uses GROQ_API_KEY from .env. Falls back to OPENROUTER_API_KEY if it is not set.
+    // Daily question uses its own Groq key (cfg.dailyKey). Falls back to the main OpenRouter key if it is not set.
     const G = !!cfg.dailyKey, k = cfg.dailyKey || cfg.apiKey;
-    if (!k) throw new Error(window.ENV_ERROR ? "Couldn't read the .env file. Open the site through a local server (python3 -m http.server 8000) in the folder that contains .env." : "Add GROQ_API_KEY or OPENROUTER_API_KEY to the .env file");
+    if (!k) throw new Error("Add dailyKey (Groq) or apiKey (OpenRouter) in config.js");
     const headers = { "Authorization": "Bearer " + k, "Content-Type": "application/json" };
     if (!G) headers["X-Title"] = "PiQuest X";
     const r = await fetch(G ? "https://api.groq.com/openai/v1/chat/completions" : "https://openrouter.ai/api/v1/chat/completions", {
@@ -182,4 +182,4 @@ const DAILY = { STREAK: 7, MONTH: 20, YEAR: 200 }; // change these numbers to tu
     const t = (profile.titles || []);
     return t.length ? `<div class="tchips">${t.map(x => `<span class="ttl ${x.id[0]}" title="Earned ${safe(x.date)}"><i>★</i>${safe(x.name)}</span>`).join("")}</div>` : `<p class="mute">No titles yet. Answer ${DAILY.STREAK} days in a row to earn your first.</p>`;
   };
-})();
+  })();

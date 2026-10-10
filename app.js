@@ -1,30 +1,3 @@
-/* Reads the .env file that sits next to index.html, so every key lives in one place.
-   It loads synchronously on purpose: the keys must be ready before daily.js and auth.js run. */
-(function () {
-  const env = {};
-  try {
-    const x = new XMLHttpRequest();
-    x.open("GET", ".env?v=" + Date.now(), false);
-    x.send();
-    if (x.status < 200 || x.status >= 300) throw new Error("status " + x.status);
-    x.responseText.split(/\r?\n/).forEach(l => {
-      const m = l.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/);
-      if (m) env[m[1]] = m[2].replace(/^(["'])(.*)\1$/, "$2");
-    });
-  } catch (e) { window.ENV_ERROR = true; }
-  window.ENV = env;
-  window.DOST_CONFIG = {
-    apiKey: env.OPENROUTER_API_KEY || "",
-    dailyKey: env.GROQ_API_KEY || "",
-    dailyModel: env.GROQ_MODEL || "openai/gpt-oss-120b",
-    model: env.OPENROUTER_MODEL || "openai/gpt-4o-mini"
-  };
-  window.FIREBASE_CONFIG = env.FIREBASE_API_KEY ? {
-    apiKey: env.FIREBASE_API_KEY, authDomain: env.FIREBASE_AUTH_DOMAIN, projectId: env.FIREBASE_PROJECT_ID,
-    storageBucket: env.FIREBASE_STORAGE_BUCKET, messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: env.FIREBASE_APP_ID, measurementId: env.FIREBASE_MEASUREMENT_ID
-  } : undefined;
-})();
 const $ = s => document.querySelector(s);
 const cfg = window.DOST_CONFIG || {};
 const BASE = "You are PiQuest X, an AI tutor for mathematics and math-related topics. You CAN answer: solving problems (arithmetic, algebra, geometry, trigonometry, calculus, statistics, probability, number theory, logic, word problems); explaining concepts and formulas; math history and famous mathematicians; how math is used in science, engineering, computer science, finance, AI and daily life; math exams, study tips, learning plans, competitions and math projects; and math-heavy parts of physics, chemistry or computing when the question is really about the mathematics. If a question has no meaningful connection to mathematics, politely decline in one short sentence and invite a math or math-related question. Reply in the language the user writes in; if they write Roman Urdu or a Urdu/English mix, answer the same way, keeping math terms in English. For problems, solve step by step: state what is given, show each step on its own line with the reason, then give the final answer clearly labelled, and check your arithmetic. For conceptual or related questions, answer clearly with short headings or bullets and a simple example. Do not use LaTeX; write math in plain text and Unicode (x², √, ÷, ×, π, ≤, ∫). Matrix questions: support any size, including 1×1, 2×2, 3×3 and larger m×n. Write every matrix inside a code block with one row per line and aligned columns. Check that sizes allow the operation (addition needs equal sizes, A×B needs columns of A = rows of B) and say clearly when an operation is undefined. For a determinant show the expansion step by step, for an inverse use the adjugate or Gauss-Jordan elimination, and for a 1×1 matrix [a] the determinant is a and the inverse is [1/a] when a is not 0. If the app gives a verified result, your steps must reach exactly that answer. If the question is ambiguous, state your assumption. If you are unsure, say so.";
@@ -142,7 +115,7 @@ function hist() {
 function newChat() { cur = null; render(); closeD() }
 async function ask(text, title, extra) {
   text = text.trim(); if (!text || busy) return;
-  if (!cfg.apiKey) { alert(window.ENV_ERROR ? "Couldn't read the .env file. Open the site through a local server (python3 -m http.server 8000) in the folder that contains .env." : "Add OPENROUTER_API_KEY to the .env file"); return }
+  if (!cfg.apiKey) { alert("Add your OpenRouter key in config.js"); return }
   if (!cur) { cur = { title: title || text.slice(0, 40), msgs: [] }; chats.unshift(cur) }
   cur.msgs.push(extra ? { role: "user", content: text, extra } : { role: "user", content: text }); save(); render(true); window.onAsked && onAsked(title);
   const holder = document.createElement("div"); holder.className = "msg ai in";
